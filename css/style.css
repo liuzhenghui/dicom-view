@@ -1,0 +1,366 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html, body {
+    background-color: #000000;
+    width: 100%;
+    height: 100%;
+}
+
+.container {
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+}
+
+.left {
+    flex-shrink: 1;
+    width: 200px;
+    border-right: 1px solid #555555;
+    background: #222222;
+    color: white;
+    max-height: 100%;
+    overflow: auto;
+    position: relative;
+}
+
+.left:before {
+    content: 'Images';
+    display: block;
+    position: fixed;
+    top: 0px;
+    width: 200px;
+    line-height: 50px;
+    text-align: center;
+    background: #222222;
+    z-index: 2;
+    border-bottom: 1px solid #555555;
+}
+
+.left .thumb {
+    margin: 55px auto 10px auto;
+    width: 160px;
+    height: 160px;
+    border: 1px solid #555555;
+    position: relative;
+    cursor: pointer;
+}
+
+.show-frames {
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    width: 200px;
+    position: fixed;
+    line-height: 45px;
+    background: #222222;
+    font-size: 16px;
+    text-align: center;
+    border-bottom: 1px solid #555555;
+}
+
+.left .thumb.active {
+    border: 1px solid #337ab7;
+}
+
+.left .thumb .num {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    font-size: 12px;
+    display: inline-block;
+    color: #ffa500;
+    z-index: 1;
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.main .list {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.main .row {
+    flex: 1;
+}
+
+.tools {
+    padding: 0 10px;
+    flex-shrink: 1;
+    height: 50px;
+    background: #222222;
+    justify-content: center;
+    border-bottom: 1px solid #555555;
+}
+
+.tools .col {
+    border-right: 1px solid #555555;
+    border-top: 1px solid #555555;
+    width: 50px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    display: flex;
+    cursor: pointer;
+}
+
+.tools .col:first-child {
+    border-left: 1px solid #555555;
+}
+
+.tools .col:hover,
+.tools .col.active {
+    background: #555555;
+}
+
+.tools .col.active {
+    background: #337ab7;
+}
+
+.tools.multi-frame .col:not(.enable) {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: .3;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.col {
+    flex-shrink: 1;
+}
+
+.view {
+    box-sizing: border-box;
+    border: 1px solid #337ab7;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.view .desc {
+    position: absolute;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    color: #ffa500;
+    pointer-events: none;
+}
+
+.view .desc p {
+    padding-left: 5px;
+}
+
+.view .desc .left-bottom {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    text-align: left;
+}
+
+.view .desc .left-top {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    text-align: left;
+}
+
+.view .desc .right-bottom {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+.text-input-container {
+    position: relative;
+}
+
+.text-input-container .text-input {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 9;
+    box-sizing: border-box;
+    padding: 3px 10px;
+    line-height: 20px;
+    border: 1px solid #337ab7;
+}
+
+.layout-container {
+    position: relative;
+}
+
+.layout-list {
+    margin-left: -1px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    line-height: 25px;
+    display: none;
+    z-index: 9;
+    border: 1px solid #555555;
+    border-top: 0px;
+}
+
+.layout-list p {
+    padding: 5px 30px 5px 40px;
+    background: #000000;
+    border-top: 1px solid #555555;
+    letter-spacing: 3px;
+    white-space: nowrap;
+    background-position: 10px center;
+    background-size: 20px;
+    background-repeat: no-repeat;
+}
+
+.layout-list p:hover {
+    background-color: #555555;
+}
+
+.layout-list p.layout1_1 {
+    background-image: url('../img/layout1_1.svg');
+}
+
+.layout-list p.layout1_2 {
+    background-image: url('../img/layout1_2.svg');
+}
+
+.layout-list p.layout2_2 {
+    background-image: url('../img/layout.svg');
+}
+
+.layout-list p.layout3_3 {
+    background-image: url('../img/layout3_3.svg');
+}
+
+.layout-container:hover .layout-list {
+    display: block;
+}
+
+.dcm-info {
+    transition: all .6s;
+    -moz-transition: all .6s; /* Firefox 4 */
+    -webkit-transition: all .6s; /* Safari 和 Chrome */
+    -o-transition: all .6s; /* Opera */
+    position: fixed;
+    z-index: 1;
+    width: 400px;
+    right: -400px;
+    height: 100%;
+    max-height: 100%;
+    overflow: auto;
+    background: #222222;
+    color: white;
+
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+}
+
+.dcm-info .group {
+    margin-bottom: 20px;
+}
+
+.dcm-info-tip {
+    line-height: 51px;
+    border-bottom: 1px solid #337ab7;
+    background: #222222;
+    margin-bottom: 20px;
+    position: relative;
+    font-size: 17px;
+}
+
+.dcm-info-tip img {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.dcm-info .title {
+    padding-left: 30px;
+    font-size: 16px;
+    line-height: 30px;
+    border-bottom: 1px solid #555555;
+    margin-bottom: 10px;
+}
+
+.dcm-info p {
+    padding-left: 30px;
+}
+
+.magnifyTool {
+    border: 4px white solid;
+    box-shadow: 2px 2px 10px #1e1e1e;
+    border-radius: 50%;
+    display: none;
+    cursor: none !important;
+}
+
+/* 移动端样式 */
+.not-pc.container {
+    flex-direction: column-reverse;
+    width: 100%;
+    overflow: auto;
+}
+
+.not-pc.container .left {
+    height: 100px;
+    width: 100%;
+    flex-direction: row;
+    display: flex;
+    align-content: center;
+
+}
+
+.not-pc.container .left .thumb {
+    margin: 5px 10px;
+    height: 90px;
+    width: 90px;
+}
+
+.not-pc.container .left:before {
+    display: none;
+}
+
+.not-pc.container .tools {
+    overflow: auto;
+    max-width: 100%;
+    padding: 0;
+}
+
+.not-pc.container .tools .col {
+    width: auto;
+    flex: 1;
+}
+
+.not-pc.container .dcm-info {
+    width: 100%;
+    right: -100%;
+}
+
+.not-pc.container .view .desc {
+    font-size: 12px;
+}

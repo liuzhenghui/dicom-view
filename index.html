@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="./css/style.css" type="text/css" rel="stylesheet"/>
+
+    <!-- jquery - currently a dependency and thus required for using cornerstoneWADOImageLoader -->
+    <script src="./lib/jquery.min.js"></script>
+
+    <script src="./lib/touch-emulator.js"></script>
+
+    <script src="./lib/hammer.min.js"></script>
+
+    <!-- include the cornerstone library -->
+    <script src="./dicom/dist/cornerstone.min.js"></script>
+    <SCRIPT src="./dicom/dist/cornerstoneMath.js"></SCRIPT>
+    <SCRIPT src="./dicom/dist/cornerstoneTools.js"></SCRIPT>
+
+    <!-- include the dicomParser library as the WADO image loader depends on it -->
+    <script src="./dicom/dist/dicomParser.min.js"></script>
+
+    <!-- BEGIN Optional Codecs -->
+
+    <!-- OpenJPEG based jpeg 2000 codec -->
+    <script src="./dicom/codecs/openJPEG-FixedMemory.js"></script>
+
+    <!-- PDF.js based jpeg 2000 codec -->
+    <!-- NOTE: do not load the OpenJPEG codec if you use this one -->
+    <!-- <script src="./dicomDemo/codecs/jpx.min.js"></script> -->
+
+    <!-- JPEG-LS codec -->
+    <script src="./dicom/codecs/charLS-FixedMemory-browser.js"></script>
+
+    <!-- JPEG Lossless codec -->
+    <script src="./dicom/codecs/jpegLossless.js"></script>
+
+    <!-- JPEG Baseline codec -->
+    <script src="./dicom/codecs/jpeg.js"></script>
+
+    <!-- Deflate transfer syntax codec -->
+    <script src="./dicom/codecs/pako.min.js"></script>
+
+    <!-- END Optional Codecs -->
+
+    <!-- include the cornerstoneWADOImageLoader library -->
+    <script src="./dicom/dist/cornerstoneWADOImageLoader.js"></script>
+
+    <script src="./lib/vue.js"></script>
+    <title>dicom view</title>
+</head>
+<body>
+<div class="container" id="app" :class="{'not-pc':!isPc,'is-pc':isPc}">
+    <link v-if="isPc" href="./css/pc.css" type="text/css" rel="stylesheet"/>
+    <div class="left" v-show="isPc||frames>1">
+        <div @click="switchActive(i-1)" class="thumb" v-for="i in frames" ref="frames"
+             :class="{active:activeIndex==i-1}">
+            <p class="num">Image:{{i}}/{{frames}}</p>
+        </div>
+    </div>
+    <div class="right">
+        <div class="tools row" :class="{'multi-frame':layout>0}" @click="stop()">
+            <div class="col enable" @click="resetTool">
+                <img src="./img/reset.svg" alt="重置" title="重置">
+            </div>
+            <div class="col layout-container enable" @click="layoutTool" v-if="frames>1&&isPc"
+                 :class="isActive('layout')">
+                <img src="./img/layout.svg" alt="分屏" title="分屏">
+                <div class="layout-list">
+                    <p class="layout1_1" @click="switchLayout(0)">1*1布局</p>
+                    <p class="layout1_2" @click="switchLayout(1)">1*2布局</p>
+                    <p class="layout2_2" @click="switchLayout(2)">2*2布局</p>
+                    <p class="layout3_3" @click="switchLayout(3)">3*3布局</p>
+                </div>
+            </div>
+            <div class="col" @click.stop="play" v-if="frames>1" :class="isActive('play')">
+                <img src="./img/stop.svg" v-if="playHandler" alt="暂停" title="暂停">
+                <img src="./img/play.svg" v-else alt="播放" title="播放">
+            </div>
+            <div class="col" @click="enableWindowLevelTool" :class="isActive('wwwc')">
+                <img src="./img/ic-wl.svg" alt="调节窗宽窗位" title="调节窗宽窗位">
+            </div>
+            <div v-if="isPc" class="col" @click="magnifyTool" :class="isActive('magnify')">
+                <img src="./img/zoomIn.svg" alt="缩放" title="缩放">
+            </div>
+            <div v-if="isPc" class="col" @click="zoomTool" :class="isActive('zoom')">
+                <img src="./img/zoom.svg" alt="缩放" title="缩放">
+            </div>
+            <div class="col" @click="panTool" :class="isActive('pan')">
+                <img src="./img/drag.svg" alt="拖拽" title="拖拽">
+            </div>
+            <div v-if="isPc" class="col" @click="highlightTool" :class="isActive('highlight')">
+                <img src="./img/highlight.svg" alt="高亮" title="高亮">
+            </div>
+            <div v-if="isPc" class="col text-input-container" @click="textTool" :class="isActive('arrowAnnotate')">
+                <img src="./img/text.svg" alt="文本" title="文本">
+                <input v-model="text" placeholder="请输入要插入的文本" type="text" class="text-input"
+                       v-show="activeTool=='arrowAnnotate'" ref="text">
+            </div>
+            <div v-if="isPc" class="col" @click="angleTool" :class="isActive('simpleAngle')">
+                <img src="./img/angle.svg" alt="角度" title="角度">
+            </div>
+            <div v-if="isPc" class="col" @click="rectangleroiTool" :class="isActive('rectangleRoi')">
+                <img src="./img/rectangle.svg" alt="矩形" title="矩形">
+            </div>
+            <div class="col" @click="circleroiTool" :class="isActive('ellipticalRoi')">
+                <img src="./img/circleroi.svg" alt="椭圆" title="椭圆">
+            </div>
+            <div class="col" @click="enableLengthTool" :class="isActive('length')">
+                <img src="./img/length.svg" alt="长度" title="长度">
+            </div>
+            <div v-if="isPc" class="col" @click="freehandTool" :class="isActive('freehand')">
+                <img src="./img/FreeformROI.svg" alt="Freeform ROI" title="Freeform ROI">
+            </div>
+            <div class="col" @click="rotateTool">
+                <img src="./img/rotate-right.svg" alt="向右旋转" title="向右旋转">
+            </div>
+            <div class="col" @click="pointTool" :class="isActive('seedAnnotate')">
+                <img src="./img/point.svg" alt="点" title="点">
+            </div>
+            <div v-if="false" class="col" @click="brushTool" :class="isActive('brush')">
+                <img src="./img/write.svg" alt="brush" title="brush">
+            </div>
+            <div class="col" class="col" @click="saveTool">
+                <img src="./img/save.svg" alt="保存" title="保存">
+            </div>
+            <div class="col enable" @click="openInfo">
+                <img src="./img/information.svg" alt="信息" title="信息">
+            </div>
+        </div>
+        <div class="main" @touchmove.stop.prevent>
+            <div class="view col" ref="view">
+                <div class="desc" v-if="image">
+                    <div class="left-top">
+                        <p>Patient Name: {{getDcmInfo(info.PatientName)}}</p>
+                        <p>Patient ID: {{getDcmInfo(info.PatientID)}}</p>
+                        <p>Patient Sex: {{getDcmInfo(info.PatientSex)}}</p>
+                        <p>Patient Age: {{getDcmInfo(info.PatientAge)}}</p>
+                    </div>
+                    <div class="left-bottom">
+                        <p>zoom: {{zoom}}</p>
+                        <p>ww/wc: {{ww}}/{{wc}}</p>
+                    </div>
+                    <div class="right-bottom" v-if="frames">Image: {{activeIndex+1}}/{{frames}}</div>
+                </div>
+            </div>
+            <div class="list" v-if="layout!=0">
+                <div class="row" v-for="(row,i) in layoutArr[layout]">
+                    <div class="view col" ref="views" @click="viewClick()" v-for="(col,j) in row">
+                        <div class="desc" v-if="image">
+                            <div class="right-bottom" v-if="frames">Image:
+                                {{(activeIndex+((i*layoutArr[layout][0].length)+j)+1)%frames}}/{{frames}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dcm-info" :style="dcmInfoStyle" @click="openInfo">
+        <p class="dcm-info-tip">DCM 信息 <img src="./img/close.svg" alt="关闭"></p>
+        <div class="group" v-for="group in infoList">
+            <div class="title">{{group.title}}</div>
+            <p v-for="item in group.list">{{item.title}}:&#12288;{{getDcmInfo(item.key,item.fun)}}</p>
+        </div>
+    </div>
+</div>
+</body>
+<script src="./js/dicomView.js"></script>
+</html>
